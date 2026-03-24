@@ -1,19 +1,8 @@
-import type { Todo } from "../types/todo";
+import { useTodos } from "../context/TodoContext";
 import TodoItem from "./TodoItem";
 
-interface TodoListProps {
-  todos: Todo[];
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
-  onEdit: (id: number, title: string) => void;
-}
-
-export default function TodoList({
-  todos,
-  onToggle,
-  onDelete,
-  onEdit,
-}: TodoListProps) {
+export default function TodoList() {
+  const { todos } = useTodos();
   if (todos.length === 0) {
     return (
       <div className="mt-16 text-center text-gray-400">
@@ -30,13 +19,7 @@ export default function TodoList({
   return (
     <div className="mt-8 space-y-2">
       {active.map((todo) => (
-        <TodoItem
-          key={todo.id}
-          {...todo}
-          onToggle={onToggle}
-          onDelete={onDelete}
-          onEdit={onEdit}
-        />
+        <TodoItem key={todo.id} {...todo} />
       ))}
 
       {done.length > 0 && active.length > 0 && (
@@ -48,13 +31,7 @@ export default function TodoList({
       )}
 
       {done.map((todo) => (
-        <TodoItem
-          key={todo.id}
-          {...todo}
-          onToggle={onToggle}
-          onDelete={onDelete}
-          onEdit={onEdit}
-        />
+        <TodoItem key={todo.id} {...todo} />
       ))}
 
       <div className="pt-4 text-center text-xs text-gray-400">

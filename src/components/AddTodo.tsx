@@ -1,10 +1,8 @@
 import { useState } from "react";
+import { useTodos } from "../context/TodoContext";
 
-interface AddTodoProps {
-  onAdd: (title: string) => Promise<void>;
-}
-
-export default function AddTodo({ onAdd }: AddTodoProps) {
+export default function AddTodo() {
+  const { addTodo } = useTodos();
   const [title, setTitle] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -13,7 +11,7 @@ export default function AddTodo({ onAdd }: AddTodoProps) {
     if (!title.trim() || submitting) return;
     setSubmitting(true);
     try {
-      await onAdd(title.trim());
+      await addTodo(title.trim());
       setTitle("");
     } finally {
       setSubmitting(false);

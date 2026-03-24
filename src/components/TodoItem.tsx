@@ -1,28 +1,20 @@
 import { useState } from "react";
+import { useTodos } from "../context/TodoContext";
 
 interface TodoItemProps {
   id: number;
   title: string;
   completed: number;
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
-  onEdit: (id: number, title: string) => void;
 }
 
-export default function TodoItem({
-  id,
-  title,
-  completed,
-  onToggle,
-  onDelete,
-  onEdit,
-}: TodoItemProps) {
+export default function TodoItem({ id, title, completed }: TodoItemProps) {
+  const { toggleTodo, deleteTodo, editTodo } = useTodos();
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(title);
 
   const handleSave = () => {
     if (editTitle.trim()) {
-      onEdit(id, editTitle.trim());
+      editTodo(id, editTitle.trim());
       setEditing(false);
     }
   };
@@ -39,7 +31,7 @@ export default function TodoItem({
     <div className="group flex items-center gap-3 rounded-xl border border-gray-100 bg-white/90 px-4 py-3.5 shadow-sm transition-all hover:border-gray-300 hover:shadow-md">
       {/* Checkbox */}
       <button
-        onClick={() => onToggle(id)}
+        onClick={() => toggleTodo(id)}
         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
           completed
             ? "border-gray-900 bg-gray-900 shadow-inner"
@@ -73,7 +65,7 @@ export default function TodoItem({
 
       {/* Delete button */}
       <button
-        onClick={() => onDelete(id)}
+        onClick={() => deleteTodo(id)}
         className="shrink-0 rounded-lg p-1.5 text-gray-300 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
       >
         <span className="text-sm">🗑️</span>

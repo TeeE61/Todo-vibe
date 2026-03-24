@@ -25,6 +25,7 @@
 - ช่วยให้ฉันสร้างโปรเจกต์ให้เสร็จตาม Vibe ที่วางไว้ โดยเน้นความเร็วแต่ไม่ทิ้งคุณภาพ
 - vibe ที่ฉันต้องการคือ "เว็บไซต์ minimal sytling สวยงาม เน้นสีขาว/ดำและเทา"
 - รายละเอียด คือ เป็นเว็บ todo list ที่ใช้จัดการ todo ที่เชื่อมต่อกับ sqlite เป็น full stack มีการเขียน react ต่อกับ api
+- ใช้ React Context API ในการจัดการ State
 
 ## Agent Note
 
@@ -55,3 +56,15 @@
 - **Divider**: ใช้ gradient divider แยกส่วน active/completed พร้อม label
 - **Buttons**: เพิ่ม active:scale-95 + shadow transitions
 - **Overall**: ยังคง minimal ขาว/ดำ/เทา ตาม vibe เดิม
+
+### 2026-03-24: Refactor — ใช้ React Context API จัดการ State
+
+- **สร้าง** `src/context/TodoContext.tsx` — TodoContext + TodoProvider + custom hook `useTodos()`
+- **ย้าย state + logic** ทั้งหมด (todos, loading, addTodo, toggleTodo, editTodo, deleteTodo) จาก HomePage → TodoProvider
+- **ปรับ App.tsx** — wrap `<TodoProvider>` ครอบ Routes
+- **ปรับ components** ให้ consume context โดยตรงผ่าน `useTodos()`:
+  - `AddTodo.tsx` — ไม่รับ props แล้ว, ใช้ `addTodo` จาก context
+  - `TodoItem.tsx` — ตัด callback props, ใช้ `toggleTodo/editTodo/deleteTodo` จาก context
+  - `TodoList.tsx` — ตัด props ทั้งหมด, ใช้ `todos` จาก context
+  - `HomePage.tsx` — เหลือแค่ layout + `loading` จาก context
+- **ผลลัพธ์**: โค้ดสะอาดขึ้น, ลด prop drilling, components เป็น loosely coupled
