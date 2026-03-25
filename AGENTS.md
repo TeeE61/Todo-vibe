@@ -26,6 +26,7 @@
 - vibe ที่ฉันต้องการคือ "เว็บไซต์ minimal sytling สวยงาม เน้นสีขาว/ดำและเทา"
 - รายละเอียด คือ เป็นเว็บ todo list ที่ใช้จัดการ todo ที่เชื่อมต่อกับ sqlite เป็น full stack มีการเขียน react ต่อกับ api
 - ใช้ React Context API ในการจัดการ State
+- ตรวจสอบการใช้งาน theme หรือไม่ และตรวจสอบว่ามีรองรับ theme หรือไม่ ถ้ามีต้อง implement เพิ่มด้วย
 
 ## Agent Note
 
@@ -70,8 +71,30 @@
 - **ผลลัพธ์**: โค้ดสะอาดขึ้น, ลด prop drilling, components เป็น loosely coupled
 
 ### 2026-03-25: เพิ่มระบบ Sort ตามวันเวลาสร้าง (Newest/Oldest)
+
 - **เพิ่ม** `SortOrder` type ("newest" | "oldest") ใน `src/types/todo.ts`
 - **เพิ่ม** `sortOrder` + `setSortOrder` state ใน TodoContext
 - **เปลี่ยน** default sort จาก priority → `created_at` (newest first)
 - **เพิ่ม** Sort toggle buttons (🕐 Newest / 🕰️ Oldest) ใน TodoList filter bar
 - **คง** Priority filter ไว้เหมือนเดิม + เพิ่ม divider แยก Filter/Sort ใน UI
+
+### 2026-03-25: เพิ่มระบบ Dark/Light Theme
+
+- **สร้าง** `src/context/ThemeContext.tsx` — ThemeContext + ThemeProvider + custom hook `useTheme()`
+  - persist theme ลง localStorage, default ตาม system preference
+  - toggle `dark` class บน `<html>` element
+- **อัปเดต CSS** (`src/index.css`) — เพิ่ม `@custom-variant dark` สำหรับ class-based dark mode, dark variants ของ `.card-glass` + `.bg-dots`
+- **อัปเดต App.tsx** — wrap `<ThemeProvider>` ครอบ BrowserRouter
+- **อัปเดต HomePage.tsx** — เพิ่มปุ่ม toggle 🌙/☀️ มุมขวาบน + dark classes ทุก element
+- **อัปเดต AddTodo.tsx** — dark classes สำหรับ input, buttons, expanded panel, priority selector
+- **อัปเดต TodoItem.tsx** — dark classes สำหรับ container, checkbox, title, edit input, detail toggle, delete button, detail panel
+- **อัปเดต TodoList.tsx** — dark classes สำหรับ filter/sort buttons (active + inactive), divider, empty state, counter
+- **ผลลัพธ์**: สลับ theme ได้ทันที, จำค่าไว้ใน localStorage, รองรับ system preference เป็น default
+
+### 2026-03-25: แก้ไข Dark Mode — พื้นหลัง + ตัวอักษร + Priority Badge
+
+- **แก้ไข** `src/index.css` — เพิ่ม `background-color: #ffffff` ให้ body + เพิ่ม `.dark body` background สีเข้ม `#030712` เป็น fallback
+- **แก้ไข** `src/pages/HomePage.tsx` — เปลี่ยนจาก `bg-linear-to-br` (ถูก `.bg-dots` override) → ใช้ `bg-white dark:bg-gray-950` (background-color) แทน, เปลี่ยน `h-screen` → `min-h-screen` รองรับ scroll
+- **แก้ไข** `src/components/TodoItem.tsx` — เพิ่ม dark variants ให้ Priority badge (`dark:bg-red-900/40 dark:text-red-400`, เหลือง, เขียว)
+- **แก้ไข** `src/components/AddTodo.tsx` — เพิ่ม dark variants ให้ Priority selector buttons เหมือนกัน
+- **สาเหตุหลัก**: `bg-dots` (background-image) override gradient ของ Tailwind → transparent ส่วนของ dots โชว์ body สีขาว

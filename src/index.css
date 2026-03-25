@@ -1,11 +1,19 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 body {
   margin: 0;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #ffffff;
+}
+
+.dark body,
+html.dark body {
+  background-color: #030712;
 }
 
 .card-glass {
@@ -14,7 +22,16 @@ body {
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
+.dark .card-glass {
+  background: rgba(30, 30, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .bg-dots {
   background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
   background-size: 24px 24px;
+}
+
+.dark .bg-dots {
+  background-image: radial-gradient(circle, #374151 1px, transparent 1px);
 }
