@@ -68,3 +68,10 @@
   - `TodoList.tsx` — ตัด props ทั้งหมด, ใช้ `todos` จาก context
   - `HomePage.tsx` — เหลือแค่ layout + `loading` จาก context
 - **ผลลัพธ์**: โค้ดสะอาดขึ้น, ลด prop drilling, components เป็น loosely coupled
+
+### 2026-03-25: เพิ่มระบบ Sort ตามวันเวลาสร้าง (Newest/Oldest)
+- **เพิ่ม** `SortOrder` type ("newest" | "oldest") ใน `src/types/todo.ts`
+- **เพิ่ม** `sortOrder` + `setSortOrder` state ใน TodoContext
+- **เปลี่ยน** default sort จาก priority → `created_at` (newest first)
+- **เพิ่ม** Sort toggle buttons (🕐 Newest / 🕰️ Oldest) ใน TodoList filter bar
+- **คง** Priority filter ไว้เหมือนเดิม + เพิ่ม divider แยก Filter/Sort ใน UI

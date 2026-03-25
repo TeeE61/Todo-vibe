@@ -31,9 +31,7 @@ export default function HomePage() {
         </div>
 
         {/* Footer */}
-        <p className="mt-8 text-center text-xs text-gray-400">
-          🚀 Built with React + SQLite
-        </p>
+        <p className="mt-4 text-center text-xs text-gray-400">🚀 todo-web</p>
       </div>
     </div>
   );

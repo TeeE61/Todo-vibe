@@ -5,15 +5,27 @@ import {
   useState,
   useCallback,
 } from "react";
-import type { Todo } from "../types/todo";
+import type { Todo, PriorityFilter, SortOrder } from "../types/todo";
 import * as api from "../api/todos";
 
 interface TodoContextValue {
   todos: Todo[];
   loading: boolean;
-  addTodo: (title: string) => Promise<void>;
+  priorityFilter: PriorityFilter;
+  setPriorityFilter: (filter: PriorityFilter) => void;
+  sortOrder: SortOrder;
+  setSortOrder: (order: SortOrder) => void;
+  filteredTodos: Todo[];
+  addTodo: (
+    title: string,
+    description: string,
+    priority: number,
+  ) => Promise<void>;
   toggleTodo: (id: number) => Promise<void>;
-  editTodo: (id: number, title: string) => Promise<void>;
+  editTodo: (
+    id: number,
+    data: { title?: string; description?: string; priority?: number },
+  ) => Promise<void>;
   deleteTodo: (id: number) => Promise<void>;
 }
 
@@ -22,6 +34,8 @@ const TodoContext = createContext<TodoContextValue | null>(null);
 export function TodoProvider({ children }: { children: React.ReactNode }) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
 
   useEffect(() => {
     api
@@ -31,10 +45,22 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const addTodo = useCallback(async (title: string) => {
-    const { data } = await api.createTodo(title);
-    setTodos((prev) => [data, ...prev]);
-  }, []);
+  // Filter by priority, then sort by created_at
+  const filteredTodos = todos
+    .filter((t) => priorityFilter === "all" || t.priority === priorityFilter)
+    .sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
+
+  const addTodo = useCallback(
+    async (title: string, description: string, priority: number) => {
+      const { data } = await api.createTodo(title, description, priority);
+      setTodos((prev) => [data, ...prev]);
+    },
+    [],
+  );
 
   const toggleTodo = useCallback(async (id: number) => {
     setTodos((prev) => {
@@ -49,10 +75,16 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const editTodo = useCallback(async (id: number, title: string) => {
-    const { data } = await api.updateTodo(id, { title });
-    setTodos((prev) => prev.map((t) => (t.id === id ? data : t)));
-  }, []);
+  const editTodo = useCallback(
+    async (
+      id: number,
+      data: { title?: string; description?: string; priority?: number },
+    ) => {
+      const { data: updated } = await api.updateTodo(id, data);
+      setTodos((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    },
+    [],
+  );
 
   const removeTodo = useCallback(async (id: number) => {
     await api.deleteTodo(id);
@@ -64,6 +96,11 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
       value={{
         todos,
         loading,
+        priorityFilter,
+        setPriorityFilter,
+        sortOrder,
+        setSortOrder,
+        filteredTodos,
         addTodo,
         toggleTodo,
         editTodo,
