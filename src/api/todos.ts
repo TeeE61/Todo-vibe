@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Todo } from "../types/todo";
+import type { Todo, SubTodo } from "../types/todo";
 
 const API_URL = "http://localhost:3001/api/todos";
 
@@ -22,3 +22,19 @@ export const updateTodo = (
 ) => axios.put<Todo>(`${API_URL}/${id}`, data);
 
 export const deleteTodo = (id: number) => axios.delete(`${API_URL}/${id}`);
+
+// Sub-todo API
+export const getSubTodos = (todoId: number) =>
+  axios.get<SubTodo[]>(`${API_URL}/${todoId}/sub-todos`);
+
+export const createSubTodo = (todoId: number, title: string) =>
+  axios.post<SubTodo>(`${API_URL}/${todoId}/sub-todos`, { title });
+
+export const updateSubTodo = (
+  todoId: number,
+  subId: number,
+  data: { title?: string; completed?: number },
+) => axios.put<SubTodo>(`${API_URL}/${todoId}/sub-todos/${subId}`, data);
+
+export const deleteSubTodo = (todoId: number, subId: number) =>
+  axios.delete(`${API_URL}/${todoId}/sub-todos/${subId}`);

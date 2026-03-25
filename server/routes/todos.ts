@@ -94,6 +94,7 @@ router.delete("/:id", (req, res) => {
     return;
   }
 
+  db.prepare("DELETE FROM sub_todos WHERE todo_id = ?").run(id);
   db.prepare("DELETE FROM todos WHERE id = ?").run(id);
   res.status(204).send();
 });

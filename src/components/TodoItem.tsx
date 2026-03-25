@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTodos } from "../context/TodoContext";
 
 const PRIORITY_CONFIG: Record<number, { label: string; badge: string }> = {
@@ -34,12 +34,32 @@ export default function TodoItem({
   priority,
   completed,
 }: TodoItemProps) {
-  const { toggleTodo, deleteTodo, editTodo } = useTodos();
+  const {
+    toggleTodo,
+    deleteTodo,
+    editTodo,
+    subTodos,
+    fetchSubTodos,
+    addSubTodo,
+    toggleSubTodo,
+    deleteSubTodo,
+  } = useTodos();
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(title);
   const [showDetail, setShowDetail] = useState(false);
+  const [subTitle, setSubTitle] = useState("");
+  const [addingSub, setAddingSub] = useState(false);
 
   const prio = PRIORITY_CONFIG[priority] || PRIORITY_CONFIG[2];
+  const subs = subTodos[id] || [];
+  const subDoneCount = subs.filter((s) => s.completed).length;
+
+  // Fetch sub-todos when detail panel opens
+  useEffect(() => {
+    if (showDetail) {
+      fetchSubTodos(id);
+    }
+  }, [showDetail, id, fetchSubTodos]);
 
   const handleSave = () => {
     if (editTitle.trim()) {
@@ -53,6 +73,18 @@ export default function TodoItem({
     if (e.key === "Escape") {
       setEditTitle(title);
       setEditing(false);
+    }
+  };
+
+  const handleAddSub = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subTitle.trim() || addingSub) return;
+    setAddingSub(true);
+    try {
+      await addSubTodo(id, subTitle.trim());
+      setSubTitle("");
+    } finally {
+      setAddingSub(false);
     }
   };
 
@@ -96,6 +128,13 @@ export default function TodoItem({
           </span>
         )}
 
+        {/* Sub-todo count badge */}
+        {subs.length > 0 && (
+          <span className="shrink-0 rounded-md bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:text-gray-400">
+            {subDoneCount}/{subs.length}
+          </span>
+        )}
+
         {/* Priority badge */}
         <span
           className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-semibold ${prio.badge}`}
@@ -123,19 +162,91 @@ export default function TodoItem({
 
       {/* Detail panel */}
       {showDetail && (
-        <div className="border-t border-gray-100 dark:border-gray-700 px-4 py-3 text-sm">
-          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-            📝 Description
-          </p>
-          {description ? (
-            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-              {description}
+        <div className="border-t border-gray-100 dark:border-gray-700 px-4 py-3 text-sm space-y-3">
+          {/* Description */}
+          <div>
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+              📝 Description
             </p>
-          ) : (
-            <p className="text-gray-400 dark:text-gray-500 italic">
-              No description
+            {description ? (
+              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                {description}
+              </p>
+            ) : (
+              <p className="text-gray-400 dark:text-gray-500 italic">
+                No description
+              </p>
+            )}
+          </div>
+
+          {/* Sub-todos */}
+          <div>
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+              📋 Sub-tasks{" "}
+              {subs.length > 0 && `(${subDoneCount}/${subs.length})`}
             </p>
-          )}
+
+            {/* Sub-todo list */}
+            {subs.length > 0 && (
+              <div className="space-y-1 mb-2">
+                {subs.map((sub) => (
+                  <div
+                    key={sub.id}
+                    className="group/sub flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                  >
+                    <button
+                      onClick={() => toggleSubTodo(id, sub.id)}
+                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all ${
+                        sub.completed
+                          ? "border-gray-900 dark:border-white bg-gray-900 dark:bg-white"
+                          : "border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400"
+                      }`}
+                    >
+                      {sub.completed ? (
+                        <span className="text-[8px] text-white dark:text-gray-900">
+                          ✓
+                        </span>
+                      ) : null}
+                    </button>
+                    <span
+                      className={`flex-1 text-xs ${
+                        sub.completed
+                          ? "text-gray-400 dark:text-gray-500 line-through"
+                          : "text-gray-700 dark:text-gray-300"
+                      }`}
+                    >
+                      {sub.title}
+                    </span>
+                    <button
+                      onClick={() => deleteSubTodo(id, sub.id)}
+                      className="shrink-0 rounded p-0.5 text-gray-300 dark:text-gray-600 opacity-0 transition-all hover:text-red-500 group-hover/sub:opacity-100"
+                    >
+                      <span className="text-xs">✕</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add sub-todo form */}
+            <form onSubmit={handleAddSub} className="flex gap-2">
+              <input
+                type="text"
+                value={subTitle}
+                onChange={(e) => setSubTitle(e.target.value)}
+                placeholder="➕ Add sub-task..."
+                className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 px-3 py-1.5 text-xs outline-none transition-all focus:border-gray-400 dark:focus:border-gray-500 dark:text-gray-100 dark:placeholder-gray-500"
+                disabled={addingSub}
+              />
+              <button
+                type="submit"
+                disabled={!subTitle.trim() || addingSub}
+                className="shrink-0 rounded-lg bg-gray-900 dark:bg-white px-3 py-1.5 text-xs font-medium text-white dark:text-gray-900 transition-all hover:bg-gray-700 dark:hover:bg-gray-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Add
+              </button>
+            </form>
+          </div>
         </div>
       )}
     </div>

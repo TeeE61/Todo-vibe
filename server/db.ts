@@ -33,4 +33,15 @@ if (!colNames.includes("priority")) {
   db.exec("ALTER TABLE todos ADD COLUMN priority INTEGER NOT NULL DEFAULT 2");
 }
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS sub_todos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    todo_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    completed INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (todo_id) REFERENCES todos(id) ON DELETE CASCADE
+  )
+`);
+
 export default db;

@@ -5,7 +5,7 @@ import {
   useState,
   useCallback,
 } from "react";
-import type { Todo, PriorityFilter, SortOrder } from "../types/todo";
+import type { Todo, SubTodo, PriorityFilter, SortOrder } from "../types/todo";
 import * as api from "../api/todos";
 
 interface TodoContextValue {
@@ -27,6 +27,12 @@ interface TodoContextValue {
     data: { title?: string; description?: string; priority?: number },
   ) => Promise<void>;
   deleteTodo: (id: number) => Promise<void>;
+  // Sub-todo operations
+  subTodos: Record<number, SubTodo[]>;
+  fetchSubTodos: (todoId: number) => Promise<void>;
+  addSubTodo: (todoId: number, title: string) => Promise<void>;
+  toggleSubTodo: (todoId: number, subId: number) => Promise<void>;
+  deleteSubTodo: (todoId: number, subId: number) => Promise<void>;
 }
 
 const TodoContext = createContext<TodoContextValue | null>(null);
@@ -36,6 +42,7 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true);
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
+  const [subTodos, setSubTodos] = useState<Record<number, SubTodo[]>>({});
 
   useEffect(() => {
     api
@@ -89,6 +96,47 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
   const removeTodo = useCallback(async (id: number) => {
     await api.deleteTodo(id);
     setTodos((prev) => prev.filter((t) => t.id !== id));
+    setSubTodos((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }, []);
+
+  const fetchSubTodos = useCallback(async (todoId: number) => {
+    const { data } = await api.getSubTodos(todoId);
+    setSubTodos((prev) => ({ ...prev, [todoId]: data }));
+  }, []);
+
+  const addSubTodo = useCallback(async (todoId: number, title: string) => {
+    const { data } = await api.createSubTodo(todoId, title);
+    setSubTodos((prev) => ({
+      ...prev,
+      [todoId]: [...(prev[todoId] || []), data],
+    }));
+  }, []);
+
+  const toggleSubTodo = useCallback(
+    async (todoId: number, subId: number) => {
+      const current = subTodos[todoId]?.find((s) => s.id === subId);
+      if (!current) return;
+      const { data } = await api.updateSubTodo(todoId, subId, {
+        completed: current.completed ? 0 : 1,
+      });
+      setSubTodos((prev) => ({
+        ...prev,
+        [todoId]: prev[todoId].map((s) => (s.id === subId ? data : s)),
+      }));
+    },
+    [subTodos],
+  );
+
+  const removeSubTodo = useCallback(async (todoId: number, subId: number) => {
+    await api.deleteSubTodo(todoId, subId);
+    setSubTodos((prev) => ({
+      ...prev,
+      [todoId]: prev[todoId].filter((s) => s.id !== subId),
+    }));
   }, []);
 
   return (
@@ -105,6 +153,11 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
         toggleTodo,
         editTodo,
         deleteTodo: removeTodo,
+        subTodos,
+        fetchSubTodos,
+        addSubTodo,
+        toggleSubTodo,
+        deleteSubTodo: removeSubTodo,
       }}
     >
       {children}

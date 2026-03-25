@@ -7,6 +7,14 @@ export interface Todo {
   created_at: string;
 }
 
+export interface SubTodo {
+  id: number;
+  todo_id: number;
+  title: string;
+  completed: number;
+  created_at: string;
+}
+
 export type PriorityFilter = "all" | 1 | 2 | 3;
 
 export type SortOrder = "newest" | "oldest";

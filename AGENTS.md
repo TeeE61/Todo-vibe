@@ -98,3 +98,23 @@
 - **แก้ไข** `src/components/TodoItem.tsx` — เพิ่ม dark variants ให้ Priority badge (`dark:bg-red-900/40 dark:text-red-400`, เหลือง, เขียว)
 - **แก้ไข** `src/components/AddTodo.tsx` — เพิ่ม dark variants ให้ Priority selector buttons เหมือนกัน
 - **สาเหตุหลัก**: `bg-dots` (background-image) override gradient ของ Tailwind → transparent ส่วนของ dots โชว์ body สีขาว
+
+### 2026-03-25: เพิ่มระบบ Sub-todo (Todo ย่อย)
+
+- **Backend**:
+  - `server/db.ts` — เพิ่ม `sub_todos` table (id, todo_id, title, completed, created_at) พร้อม foreign key ON DELETE CASCADE
+  - `server/routes/subTodos.ts` — (ใหม่) CRUD REST API สำหรับ sub-todo (GET, POST, PUT, DELETE) ภายใต้ `/api/todos/:todoId/sub-todos`
+  - `server/routes/todos.ts` — เพิ่ม cascade delete sub_todos เมื่อลบ parent todo
+  - `server/index.ts` — ลงทะเบียน subTodosRouter
+- **Frontend Types + API**:
+  - `src/types/todo.ts` — เพิ่ม `SubTodo` interface (id, todo_id, title, completed, created_at)
+  - `src/api/todos.ts` — เพิ่ม `getSubTodos`, `createSubTodo`, `updateSubTodo`, `deleteSubTodo` functions
+- **Context**:
+  - `src/context/TodoContext.tsx` — เพิ่ม `subTodos` state (Record<number, SubTodo[]>), `fetchSubTodos`, `addSubTodo`, `toggleSubTodo`, `deleteSubTodo` + ลบ sub-todos เมื่อลบ parent
+- **UI (TodoItem.tsx)**:
+  - แสดง sub-todo count badge (done/total) บน main row
+  - แสดง sub-todo list ใน detail panel พร้อม checkbox toggle + delete
+  - เพิ่ม inline form สำหรับ add sub-task ใน detail panel
+  - Fetch sub-todos อัตโนมัติเมื่อเปิด detail panel
+  - รองรับ dark mode ทุก element
+- **ผลลัพธ์**: แต่ละ todo สามารถมี sub-task ย่อยได้ไม่จำกัด มี progress badge แสดงสถานะ
