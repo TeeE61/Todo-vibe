@@ -118,3 +118,9 @@
   - Fetch sub-todos อัตโนมัติเมื่อเปิด detail panel
   - รองรับ dark mode ทุก element
 - **ผลลัพธ์**: แต่ละ todo สามารถมี sub-task ย่อยได้ไม่จำกัด มี progress badge แสดงสถานะ
+
+### 2026-03-26: สร้าง README.md
+
+- **เขียนใหม่ทั้งไฟล์** — ลบเนื้อหาเดิมออก
+- **เนื้อหา**: ภาพรวมโปรเจกต์, features, tech stack พร้อมเหตุผล, project structure พร้อมคำอธิบาย, getting started, API endpoints, DB schema, scripts
+- **รูปแบบ**: README แบบมาตรฐาน (badges, tables, code blocks, tree structure)
